@@ -1,0 +1,29 @@
+{
+  "schema": "aff-flowkit-canonical-fixtures/v1",
+  "fixtures": [
+    {
+      "name": "scope",
+      "payload": {"topicRef": {"revision": 1, "id": "TRAVEL"}, "orientation": "VERTICAL", "formatId": "FMT-B", "projectId": "TEST-PROJECT", "productId": "TEST-PRODUCT"},
+      "canonical": "{\"formatId\":\"FMT-B\",\"orientation\":\"VERTICAL\",\"productId\":\"TEST-PRODUCT\",\"projectId\":\"TEST-PROJECT\",\"topicRef\":{\"id\":\"TRAVEL\",\"revision\":1}}",
+      "sha256": "ad0058bb638df72d325d1c927ffb79d999ee455de245677d9feec2ae2653ad36"
+    },
+    {
+      "name": "unicode-utf16",
+      "payload": {"1": "one", "€": "euro", "😀": "emoji", "דּ": "hebrew", "ö": "umlaut", "\r": "control"},
+      "canonical": "{\"\\r\":\"control\",\"1\":\"one\",\"ö\":\"umlaut\",\"€\":\"euro\",\"😀\":\"emoji\",\"דּ\":\"hebrew\"}",
+      "sha256": "6498c1d1846c5ec6014645d72c5b93cb46f94c6b7b38bf1e1e1679f94f046150"
+    },
+    {
+      "name": "numbers",
+      "payload": {"numbers": [333333333.3333333, 1e30, 4.5, 0.002, 1e-27, 0], "flag": true, "empty": null},
+      "canonical": "{\"empty\":null,\"flag\":true,\"numbers\":[333333333.3333333,1e+30,4.5,0.002,1e-27,0]}",
+      "sha256": "d2e5b4ef9811d3508647faa83e1174560c6e9b73d23d334c4a67fc980b0b82a9"
+    },
+    {
+      "name": "nested",
+      "payload": {"inputs": [{"role": "AFTER", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, {"sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "role": "BEFORE"}], "notes": "Du lịch · quyền đã xác minh\n", "revision": 2},
+      "canonical": "{\"inputs\":[{\"role\":\"AFTER\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},{\"role\":\"BEFORE\",\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}],\"notes\":\"Du lịch · quyền đã xác minh\\n\",\"revision\":2}",
+      "sha256": "95e88e9f9a74cdb64aae036386d527bf935a9e6f51ef8165dcc54819f9cbec61"
+    }
+  ]
+}

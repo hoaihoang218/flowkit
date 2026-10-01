@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Flow Kit · Bàn thao tác local</title>
+  <link rel="stylesheet" href="/hybrid/styles.css">
+  <script type="module" src="/hybrid/app.mjs"></script>
+</head>
+<body>
+<header><div><h1>Flow Kit <span>· Bàn thao tác local</span></h1><p>Standalone hybrid v1 · Một batch, một attempt, chạy tuần tự.</p></div><strong id="connection">Chưa kết nối</strong></header>
+<main>
+  <aside class="notice">Provider chưa được xác minh · <strong>MANUAL_REQUIRED</strong>. Số dư chưa biết. Nghiệm thu hai lane thật và tích hợp Studio chưa hoàn tất.</aside>
+  <div id="message" role="status" aria-live="polite">Nhập token local để kiểm tra kết nối. Token chỉ ở bộ nhớ của trang.</div>
+  <section aria-labelledby="connection-title"><h2 id="connection-title"><span>01</span> Kết nối và session</h2>
+    <form id="connect-form" class="row"><label>Token local<input id="token" type="password" autocomplete="off" required></label><label>Operator cấu hình trên server<input id="actor" value="local-operator" required autocomplete="off"></label><button id="connect" type="submit">Kiểm tra kết nối</button></form>
+    <button id="forget-session" type="button">Bỏ session đã lưu để kết nối mới</button>
+    <p class="help">Operator phải trùng FLOWKIT_OPERATOR_ID trên server; ô này không cấp quyền tùy ý. Session ID được giữ trong sessionStorage để tiếp tục receipt sau reload; cần nhập lại token. Kết nối lại gia hạn cùng session và đọc trạng thái, không chạy batch.</p>
+    <details><summary>Thông tin provider và session</summary><pre id="provider">Chưa có dữ liệu server.</pre></details>
+  </section>
+  <section aria-labelledby="input-title"><h2 id="input-title"><span>02</span> Nhập input bytes</h2>
+    <form id="input-form"><div class="grid"><label>Project ID<input name="projectId" required></label><label>Role<select name="role"><option>SOURCE_MOTION</option><option>BEFORE</option><option>AFTER</option><option>PRODUCT_IMAGE</option></select></label><label>Content class<select name="contentClass"><option>SOURCE_MOTION</option><option>PERSON</option><option>PRODUCT_ONLY</option></select></label><label>Tệp input<input name="file" type="file" required></label></div><label>Xác nhận nguồn và nội dung input<textarea name="attestation" rows="2" required maxlength="2000"></textarea></label><button data-mutation="upload">Upload input và xem receipt thật</button></form>
+    <pre id="input-result">SHA-256 và metadata chỉ xuất hiện sau khi server nhận bytes.</pre>
+  </section>
+  <section aria-labelledby="batch-title"><h2 id="batch-title"><span>03</span> Manifest, approval và ngân sách</h2>
+    <label>Nhập manifest JSON từ tệp<input id="manifest-file" type="file" accept=".json,application/json"></label>
+    <label>Batch JSON<textarea id="manifest" rows="12" spellcheck="false" placeholder='{"requests": []}'></textarea></label>
+    <p class="help">Contract: docs/hybrid-v1.md. Giữ nguyên idempotencyKey khi gửi lại. Fingerprint dùng RFC 8785 trên toàn envelope trừ đúng idempotencyKey và payloadSha256. Mọi field tùy chọn phải ghi null rõ ràng trong envelope và authorization.specification; scope.sourceWindow = null cho product-only. Approval và promotion cần snapshot riêng.</p>
+    <div class="row"><button id="fingerprint" type="button">Tính fingerprint và xem batch</button><button id="inspect" type="button">Xem batch và ngân sách</button></div><pre id="batch-summary">Chưa kiểm tra manifest.</pre>
+    <label>Authorization JSON cần đăng ký<textarea id="authorization" rows="8" spellcheck="false" placeholder="Dán một authorization đã được operator duyệt."></textarea></label>
+    <label class="check"><input id="approval-confirm" type="checkbox">Tôi xác nhận đã duyệt đúng snapshot này: input/hash, profile, Flow project, action và ngân sách.</label>
+    <div class="row"><button id="authorize" data-mutation="authorize" type="button">Đăng ký approval</button><button id="admit" data-mutation="admit" type="button">Gửi batch đã đăng ký approval</button></div>
+    <p class="help">Đăng ký từng authorization riêng. Gửi batch không tự duyệt approval. Lỗi hoặc outcome chưa rõ cần đọc trạng thái server trước hành động tiếp theo; không tự retry.</p>
+  </section>
+  <section aria-labelledby="requests-title"><h2 id="requests-title"><span>04</span> Batch và bước thủ công</h2>
+    <div class="row"><label>Batch ID lọc trạng thái<input id="batch-filter" autocomplete="off"></label><button id="refresh" type="button">Đọc lại trạng thái</button></div>
+    <p id="freshness" class="help">Mutation khóa khi chưa kết nối, offline, bận, xung đột hoặc dữ liệu quá 60 giây.</p>
+    <div class="table-wrap"><table><thead><tr><th>Thứ tự / lane</th><th>Action</th><th>Trạng thái / QA</th><th>Chọn</th></tr></thead><tbody id="requests"><tr><td colspan="4">Chưa đọc dữ liệu.</td></tr></tbody></table></div>
+    <div class="row"><button id="run" data-mutation="run" type="button">Chạy batch đã duyệt</button><button id="handoff" type="button">Xem bước cần thao tác thủ công</button></div>
+    <p class="help">Chạy chỉ giữ reservation và trả handoff thủ công. Chỉ lane QUEUED kế tiếp được chạy sau output và QA PASS của lane trước. Cancel sau handoff không hủy thao tác trên provider và không cấp attempt mới.</p>
+    <pre id="request-detail">Chọn một request để xem exact prompt/hash, input roles, profile, Flow project, ngân sách và stateVersion.</pre>
+    <div id="input-downloads" class="row"></div>
+  </section>
+  <section aria-labelledby="receipt-title"><h2 id="receipt-title"><span>05</span> Receipt, output và QA thủ công</h2>
+    <form id="receipt-form"><label>Receipt metadata JSON<textarea id="receipt" rows="10" spellcheck="false" required></textarea></label><p class="help">Receipt phải thuộc đúng session/reservation/attempt=1/fingerprint/lane. UNKNOWN cost giữ observedCostUnits=null. Output sau cancel/failed chỉ làm bằng chứng. Output trả muộn phải chứng minh thao tác nằm trong cửa sổ approval cũ; hết hạn không cấp quyền Generate thêm. Metadata không thay QA thị giác.</p><label>Tệp output thực tế<input id="output-file" type="file" accept="video/*" required></label><button data-mutation="receipt">Nhập receipt/output</button></form>
+    <label>Artifact chọn để xem và review<select id="artifact"><option value="">Chưa có artifact</option></select></label><div class="row"><button id="view-output" data-mutation="download" type="button">Xem bytes output</button><button id="download-output" data-mutation="download" type="button">Tải bytes output</button></div>
+    <video id="output-preview" controls playsinline preload="metadata" hidden></video>
+    <form id="qa-form"><div class="grid"><label>QA receipt ID<input id="qa-id" required></label><label>Verdict<select id="qa-verdict" required><option value="">Chọn rõ verdict</option><option>PASS</option><option>FAIL</option></select></label></div><fieldset><legend>Review thị giác và kỹ thuật cho exact SHA của artifact</legend><div id="qa-checks" class="grid"></div></fieldset><label>Ghi chú review<textarea id="qa-notes" rows="2" required maxlength="2000"></textarea></label><button data-mutation="qa">Lưu QA thủ công</button></form>
+  </section>
+  <section aria-labelledby="reconcile-title"><h2 id="reconcile-title"><span>06</span> Đối soát hoặc hủy</h2>
+    <label>Lý do<textarea id="reason" rows="2" maxlength="1000"></textarea></label><div class="grid"><label>Bằng chứng đối soát<input id="evidence"></label><label>Kết quả đối soát<select id="outcome"><option>OUTCOME_UNKNOWN</option><option>FAILED</option></select></label></div><div class="row"><button id="reconcile" data-mutation="reconcile" type="button">Đối soát trạng thái</button><button id="cancel" data-mutation="cancel" type="button" class="danger">Hủy request</button></div><p class="help">Đối soát ghi bằng chứng, không submit lại generation. OUTCOME_UNKNOWN giữ khóa thao tác mới. Khi xung đột version, biểu mẫu được giữ nguyên; đọc lại và đối chiếu trước khi gửi.</p>
+    <details><summary>Xác nhận output đã giữ làm bằng chứng trong cùng attempt</summary>
+      <label>Clarification JSON (tùy chọn, chỉ cho OUTCOME_UNKNOWN)<textarea id="clarification" rows="7" spellcheck="false" placeholder="Nhập artifactId, artifactSha256, receiptId, reservationId, observedGenerations, observedCostUnits của evidence gốc."></textarea></label>
+      <p class="help">Nhập đúng sáu field trên, chi phí đã biết phải là số nguyên được operator đối chiếu; không tự thay UNKNOWN bằng 0. Dùng lý do và evidenceRef phía trên. Chỉ session gốc đã xác thực/gia hạn được xác nhận; server giữ nguyên receipt và bytes, thêm bằng chứng association. Còn output chưa xác nhận thì trạng thái vẫn OUTCOME_UNKNOWN. QA vẫn cần review riêng.</p>
+      <button id="clarify-output" data-mutation="reconcile" type="button">Xác nhận output bằng evidence đối soát</button>
+    </details>
+  </section>
+</main><footer>Flow Kit AFF · Dữ liệu server là nguồn trạng thái · Không lưu token, prompt hoặc media vào localStorage.</footer>
+</body></html>
